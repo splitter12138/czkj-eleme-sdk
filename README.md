@@ -13,7 +13,7 @@ PHP >= 5.6
 ## composer
 
 ```
-composer install Czkj/eleme
+composer install czkj/eleme
 ```
 
 ## 使用方法
