@@ -1,0 +1,21 @@
+{
+    "name": "czkj/eleme",
+    "description": "eleme hongbao",
+    "type": "library",
+    "require": {
+      "php": ">=5.6"
+    },
+    "license": "Apache-2.0",
+    "authors": [
+      {
+        "name": "splitter",
+        "email": "714112029@qq.com"
+      }
+    ],
+    "minimum-stability": "stable",
+    "autoload": {
+      "psr-4": {
+        "Czkj\\Eleme\\": "src/"
+      }
+    }
+  }
