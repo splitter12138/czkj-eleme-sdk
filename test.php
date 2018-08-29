@@ -1,8 +1,8 @@
 <?php
 require_once __DIR__ . '/vendor/autoload.php';
 
-use Czkj\Eleme\Request;
-use Czkj\Eleme\Tools;
+use czkj\eleme\Request;
+use czkj\eleme\Tools;
 
 $url = ''; // 饿了么红包地址
 $cookie = ''; // cookie

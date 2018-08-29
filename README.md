@@ -13,7 +13,7 @@ PHP >= 5.6
 ## composer
 
 ```
-composer install Czkj/eleme
+composer require czkj/eleme
 ```
 
 ## 使用方法
@@ -24,8 +24,8 @@ composer install Czkj/eleme
 <?php
 require_once __DIR__ . '/vendor/autoload.php';
 
-use Czkj\Eleme\Request;
-use Czkj\Eleme\Tools;
+use czkj\eleme\Request;
+use czkj\eleme\Tools;
 
 $url = ''; // 饿了么红包地址
 $cookie = ''; // cookie

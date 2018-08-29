@@ -7,7 +7,7 @@
 // | Author: 杨程智 <714112029@qq.com>
 // +----------------------------------------------------------------------
 
-namespace Czkj\Eleme;
+namespace czkj\eleme;
 
 class Tools {
     const QQ_COOKIE_CODE = 'snsInfo[101204453]=';
