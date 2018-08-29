@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # 饿了么领红包PHP-SDK
 
 基于[mtdhb/get](https://github.com/mtdhb/get)开源代码的PHP简单封装。
@@ -88,7 +87,3 @@ var_dump($res);exit;
     "theme_id": 2953
 }
 ~~~
-=======
-# czkj-eleme-sdk
-饿了么拼手气红包领取PHP-SDK
->>>>>>> 360c2134ac761ef3d3aa4be94d84832c0b2cbd9b
