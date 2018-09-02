@@ -18,7 +18,7 @@ composer require czkj/eleme
 
 ## 使用方法
 
-> 详细用法可参考https://github.com/mtdhb/get源码
+> 详细用法可参考https://github.com/mtdhb/get 源码
 
 ~~~php
 <?php

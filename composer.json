@@ -12,7 +12,7 @@
         "email": "714112029@qq.com"
       }
     ],
-    "minimum-stability": "stable",
+    "minimum-stability": "dev",
     "autoload": {
       "psr-4": {
         "czkj\\eleme\\": "src/"
