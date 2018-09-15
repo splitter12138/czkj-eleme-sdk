@@ -29,7 +29,7 @@ class Request extends Tools{
      * @param string $sn
      * @param string $cookie
      */
-    function __construct($sn,$cookie){
+    function __construct($sn='',$cookie=''){
         $this->sn = $sn;
         $this->cookie = $cookie;
         $this->origin = self::ORIGIN;
