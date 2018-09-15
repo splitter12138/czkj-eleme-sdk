@@ -2,9 +2,12 @@
 // +----------------------------------------------------------------------
 // | 饿了么红包请求类
 // +----------------------------------------------------------------------
-// | Date: 2018年8月29日22:06:03
+// | 本SDK基于其他开源项目制作，也将免费开源
+// | 请各位作者遵守开源许可
 // +----------------------------------------------------------------------
-// | Author: 杨程智 <714112029@qq.com>
+// | Date: 2018年9月15日
+// +----------------------------------------------------------------------
+// | Author: Splitter <714112029@qq.com>
 // +----------------------------------------------------------------------
 namespace czkj\eleme;
 use czkj\eleme\Tools;
@@ -13,7 +16,6 @@ class Request extends Tools{
     const ORIGIN = 'https://h5.ele.me';
 
     public $errMsg;
-
     private $header;
     private $origin;
     private $user_agent;
@@ -21,7 +23,6 @@ class Request extends Tools{
     private $timeout;
     private $sn;
     private $cookie;
-    private $cookies;
     
     /**
      * 构造方法
@@ -64,6 +65,11 @@ class Request extends Tools{
         return false;
     }
 
+    /**
+     * 发送短信验证码
+     * @param string $phone  手机号
+     * @return void
+     */
     public function sendMobileCode($phone){
         $url = '/restapi/eus/login/mobile_send_code';
         $data = [
@@ -87,7 +93,14 @@ class Request extends Tools{
         return false;
     }
     
-    public function loginByMobile($phone,$code,$token){
+    /**
+     * 手机号登录
+     * @param string $phone     手机号
+     * @param string $code      验证码
+     * @param string $token     短信验证token
+     * @return void
+     */
+    private function loginByMobile($phone,$code,$token){
         $url = '/restapi/eus/login/login_by_mobile';
         $data = [
             'mobile' => $phone,
@@ -96,7 +109,6 @@ class Request extends Tools{
         ];
         $result = $this->post($url,json_encode($data),'save',true);
         if($result){
-            $this->setLog('loginByMobile',$result['data']);
             $json = json_decode($result['data'],true);
             if(empty($json)){
                 $this->errMsg = '无法解析返回值！';
@@ -111,7 +123,14 @@ class Request extends Tools{
         return false;
     }
 
-    public function changeMobile($phone,$openid,$sign){
+    /**
+     * 改变绑定的手机号
+     * @param string $phone     手机号
+     * @param string $openid    openid
+     * @param string $sign      签名
+     * @return void
+     */
+    private function changeMobile($phone,$openid,$sign){
         $data = [
             'sign' => $sign,
             'phone' => $phone
@@ -134,23 +153,25 @@ class Request extends Tools{
     }
 
     /**
-     * 领取红包
-     * @param string $phone
-     * @param string $openid
-     * @param string $sign  eleme_key
-     * @param string $platform  
+     * cookie绑定手机号
+     * @param string $phone         手机号
+     * @param string $sms_code      短信验证码
+     * @param string $sms_token     短信验证token
+     * @param string $cookie_type   cookie类型
      * @return void
      */
-    public function getRedPacket($phone,$platform,$sms_code,$sms_token,$cookie_type='qq',$cookie=''){
-        // 解析cookie
-        $cookie_info = $this->qqCookie($cookie ? $cookie : $this->cookie);
+    public function cookieBindPhone($phone,$sms_code,$sms_token,$cookie_type='qq'){
+        if($cookie_type == 'qq'){
+            $cookie_info = $this->qqCookie($this->cookie);
+        }else{
+            $cookie_info = $this->wxCookie($this->cookie);
+        }
         if(!$cookie_info || !isset($cookie_info['openid']) || !isset($cookie_info['eleme_key'])){
             $this->errMsg = 'Cookie解析失败！';
             return false;
         }
         $openid = $cookie_info['openid'];
         $sign = $cookie_info['eleme_key'];
-        // 登录
         $header = $this->loginByMobile($phone,$sms_code,$sms_token);
         if(!$header) return false;
         // 解析response的header
@@ -159,11 +180,45 @@ class Request extends Tools{
             $this->errMsg = 'ResponseHeader解析失败！';
             return false;
         }
-        // 重新封装cookie
-        // $this->cookie .= '; ' . implode('; ',$set_cookie);
         $this->cookie = implode('; ',$set_cookie);
         // 绑定手机号
         if(!$this->changeMobile($phone,$openid,$sign)) return false;
+        return $this->cookie;
+    }
+
+    /**
+     * 领取红包
+     * @param string $phone         手机号
+     * @param string $platform      来源值
+     * @param string $sms_code      短信验证码【可选】
+     * @param string $sms_token     短信验证token【可选】
+     * @param string $cookie_type   cookie类型：qq或wx
+     * @param string $cookie        cookie参数【可选】在使用已绑定手机的cookie时，需传入此参数
+     * @return void
+     */
+    public function getRedPacket($phone,$platform,$sms_code='',$sms_token='',$cookie_type='qq',$cookie=''){
+        // 解析cookie
+        if($cookie_type == 'qq'){
+            $cookie_info = $this->qqCookie($this->cookie);
+        }else{
+            $cookie_info = $this->wxCookie($this->cookie);
+        }
+        if(!$cookie_info || !isset($cookie_info['openid']) || !isset($cookie_info['eleme_key'])){
+            $this->errMsg = 'Cookie解析失败！';
+            return false;
+        }
+        $openid = $cookie_info['openid'];
+        $sign = $cookie_info['eleme_key'];
+
+        if($sms_code && $sms_token){
+            // 使用新号
+            $this->cookie = $this->cookieBindPhone($phone,$sms_code,$sms_token,$cookie_type);
+        }elseif($cookie){
+            $this->cookie = $cookie;
+        }else{
+            $this->errMsg = '缺少必要参数！';
+            return false;
+        }
         $data = [
             'device_id' => '',
             'group_sn' => $this->sn,
@@ -194,6 +249,11 @@ class Request extends Tools{
         return false;
     }
 
+    /**
+     * get方法
+     * @param string $url  地址
+     * @return void
+     */
     private function get($url){
         $url = $this->origin . $url;
         $cur = curl_init($url);
@@ -211,6 +271,14 @@ class Request extends Tools{
 		return ['code'=>$httpCode,'data'=>$httpContents];
     }
 
+    /**
+     * post方法
+     * @param string    $url            请求地址
+     * @param string    $par            请求参数
+     * @param boolean   $use_cookie     是否使用cookie
+     * @param boolean   $return_header  是否返回头部
+     * @return void
+     */
     private function post($url,$par,$use_cookie=false,$return_header=false){
         $url = $this->origin . $url;
         $cur = curl_init($url);
@@ -225,7 +293,6 @@ class Request extends Tools{
 		curl_setopt($cur, CURLOPT_USERAGENT, $this->user_agent);
 		curl_setopt($cur, CURLOPT_FOLLOWLOCATION, 1);
         curl_setopt($cur, CURLOPT_HEADER, $return_header);
-        // curl_setopt($cur, CURLINFO_HEADER_OUT, true);
         if($use_cookie){
             curl_setopt($cur, CURLOPT_COOKIE, $this->cookie);
         }
@@ -234,7 +301,6 @@ class Request extends Tools{
         curl_setopt($cur, CURLOPT_RETURNTRANSFER, 1);
         $httpContents = curl_exec($cur);
         $httpCode = curl_getinfo($cur, CURLINFO_HTTP_CODE);
-        // var_dump(curl_getinfo($cur, CURLINFO_HEADER_OUT));
         $ret['code'] = $httpCode;
         if($return_header){
             $headerSize = curl_getinfo($cur, CURLINFO_HEADER_SIZE);
@@ -246,6 +312,12 @@ class Request extends Tools{
 		return $ret;
     }
 
+    /**
+     * put方法（老版本put方法已弃用）
+     * @param string $url  请求地址
+     * @param string $par  请求参数
+     * @return void
+     */
     private function put($url,$par){
         $url = $this->origin . $url;
         $cur = curl_init($url);
@@ -269,6 +341,13 @@ class Request extends Tools{
 		return ['code'=>$httpCode,'data'=>$httpContents];
     }
 
+    /**
+     * 日志输出（调试用）
+     * @param string $name      日志名称
+     * @param string $content   日志内容
+     * @param string $type      日志级别：INFO、DEBUG、WARONG、ERROR
+     * @return void
+     */
     private function setLog($name,$content,$type='info'){
         if(is_array($content)){
             $content = json_encode($content,JSON_UNESCAPED_UNICODE);

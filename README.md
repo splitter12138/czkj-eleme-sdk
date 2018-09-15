@@ -27,6 +27,11 @@ require_once __DIR__ . '/vendor/autoload.php';
 use czkj\eleme\Request;
 use czkj\eleme\Tools;
 
+function dump($info){
+    var_dump($info);
+    echo '<br>';
+}
+
 $url = ''; // 饿了么红包地址
 $cookie = ''; // cookie
 $phone = ''; // 手机号
@@ -34,20 +39,24 @@ $phone = ''; // 手机号
 $tools = new Tools();
 // 1、链接解析
 $data = $tools->getUrlQueryData($url);
-// 2、解析cookie
-$cookie = $tools->qqCookie($cookie);
-// 3、获取红包信息
-$request = new Request($data['sn']);
-$redPacketInfo = $request->getRedPacketInfo($data['theme_id']);
-// 4、领取红包
-$res = $request->getRedPacket($phone,$cookie['openid'],$cookie['eleme_key'],$data['platform']);
 
-// ret_code = 2 已经领过了
-// ret_code = 1 红包已领完
-// ret_code = 5 没有次数了
-// ret_code = 3 领取成功
-var_dump($request->errMsg);
-var_dump($res);exit;
+// 2、绑定手机号
+// 已绑定过的cookie可以跳过此步骤；除非你打算每次都用一个新的手机号
+$request = new Request($data['sn'],$cookie);
+$res = $request->sendMobileCode($phone);
+dump($request->errMsg);
+dump($res);exit; // 此处需要使用异步进行
+
+$your_cookie_param = $request->cookieBindPhone($phone,'632833','14414f1d3b9558799b4818ca7c4335121d971988a60e2ffc96f0ada92dd77cb1');
+dump($request->errMsg);
+dump($res);
+
+// 3、领取红包
+$res = $request->getRedPacket($phone,$data['platform'],'632833','14414f1d3b9558799b4818ca7c4335121d971988a60e2ffc96f0ada92dd77cb1');
+// 如果你要使用已绑定过的cookie，应该这样传值
+// $res = $request->getRedPacket($phone,$data['platform'],'','','qq',$your_cookie_param);
+dump($request->errMsg);
+dump($res);exit;
 ~~~
 
 ## getRedPacket返回值
@@ -86,4 +95,8 @@ var_dump($res);exit;
     "ret_code": 4,  // 领取成功
     "theme_id": 2953
 }
+// ret_code = 2 已经领过了
+// ret_code = 1 红包已领完
+// ret_code = 5 没有次数了
+// ret_code = 3 领取成功
 ~~~
