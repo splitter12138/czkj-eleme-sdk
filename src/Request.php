@@ -37,8 +37,7 @@ class Request extends Tools{
         $this->user_agent = 'Mozilla/5.0 (Linux; Android 7.0; MIX Build/NRD90M; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/57.0.2987.132 MQQBrowser/6.2 TBS/044004 Mobile Safari/537.36 V1_AND_SQ_7.5.0_794_YYB_D QQ/7.5.0.3430 NetType/WIFI WebP/0.3.0 Pixel/1080';
         $this->header = [
             'origin:'.$this->origin,
-            'content-type:text/plain;charset=UTF-8',
-            'x-shard:eosid=3028732173121603600'
+            'content-type:text/plain;charset=UTF-8'
         ];
     }
 
@@ -83,7 +82,7 @@ class Request extends Tools{
                 $this->errMsg = $json['message'];
                 return false;
             }
-            return $json;
+            return $json['validate_token'];
         }
         return false;
     }
