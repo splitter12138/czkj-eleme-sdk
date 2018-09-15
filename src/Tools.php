@@ -51,6 +51,19 @@ class Tools {
         return $this->cookieAnalysis($cookie,'wx');        
     }
 
+    public function getSetCookie($header){
+        $list = array();        // 匹配后的结果
+        $header_arr = explode(';',$header);
+        $search_str = "Set-Cookie:";        // 搜索的字符串
+        foreach($header_arr as $key=>$val ){
+            if(strstr($val,$search_str)!==false){
+                $ret = str_replace('Set-Cookie:','',strstr($val,$search_str));
+                array_push($list, trim($ret));
+            }
+        }
+        return $list;
+    }
+
     private function cookieAnalysis($cookie,$type){
         $code = $type == 'wx' ? self::WX_COOKIE_CODE : self::QQ_COOKIE_CODE;
         $cookie = urldecode(trim($cookie));
